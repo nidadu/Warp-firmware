@@ -156,18 +156,25 @@ devSSD1331init(void)
 	 *	Any post-initialization drawing commands go here.
 	 */
 	//...
-	writeCommand(0x22);	// draw rectangle
-	writeCommand(0x00);	// column start address
-	writeCommand(0x00);	// row start address
-	writeCommand(0x5F);	// column end address
-	writeCommand(0x3F);	// row end address
-	writeCommand(0x00);	// color C of the line
-	writeCommand(0xFF);     // color B of the line
-	writeCommand(0x00);     // color A of the line
-	writeCommand(0x00);     // color C of the fill area
-	writeCommand(0xFF);     // color B of the fill area
-	writeCommand(0x00);     // color A of the fill area
+	writeCommand(0x22);	// drawing rectangle
+	writeCommand(0x00);	// column starting address
+	writeCommand(0x00);	// row starting address
+	writeCommand(0x5F);	// column ending address
+	writeCommand(0x3F);	// row ending address
+	writeCommand(0x00);	// C color of the line
+	writeCommand(0xFF);     // B color of the line
+	writeCommand(0x00);     // A color of the line
+	writeCommand(0x00);     // C color of the fill area
+	writeCommand(0xFF);     // B color of the fill area
+	writeCommand(0x00);     // A color of the fill area
 
+	writeCommand(0x82);	// set contrast for B segment
+	writeCommand(0xFF);	// set max value (255d)
 
+	writeCommand(0x87);	// set maximum master current
+	writeCommand(0x0F);	// set maximum master current 
+	
+	writeCommand(0xB9);	// enable gray scale
+	
 	return 0;
 }
