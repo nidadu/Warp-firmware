@@ -1357,6 +1357,69 @@ main(void)
 
 	devSSD1331init();
 
+	enableI2Cpins(menuI2cPullupValue);
+	i2c_status_t	status_wr;
+	uint8_t calibration_value[2] = {0x37, 0x39};
+	i2c_device_t slave =
+	{
+		.address = 0x40,
+		.baudRate_kbps = gWarpI2cBaudRateKbps
+	};
+	status_wr = I2C_DRV_MasterSendDataBlocking(
+							0 /* I2C instance */,
+							&slave,
+							0x05,
+							1,
+							(uint8_t *)calibration_value,
+							2,
+							gWarpI2cTimeoutMilliseconds);
+
+	if (status_wr != kStatus_I2C_Success)
+	{
+        SEGGER_RTT_WriteString(0, " communication failed\n");
+		OSA_TimeDelay(gWarpMenuPrintDelayMilliseconds);
+	}
+	else 
+	{
+        SEGGER_RTT_WriteString(0, " writing succeeded\n");
+		OSA_TimeDelay(gWarpMenuPrintDelayMilliseconds);
+	}
+
+	i2c_status_t	status_r;
+	uint8_t calibration_register = 0x05;
+	uint8_t current_register = 0x03;
+	uint8_t current_i2c_buffer[2];
+	uint8_t i2c_buffer[2];
+
+	while(1)
+	{
+		for (int i=0x00; i<0x06; i++)
+		{
+			status_r = I2C_DRV_MasterReceiveDataBlocking(
+									0 /* I2C peripheral instance */,
+									&slave,
+									i,
+									1,
+									(uint8_t *)i2c_buffer,
+									2,
+									gWarpI2cTimeoutMilliseconds);
+
+			if (status_r != kStatus_I2C_Success)
+			{
+				SEGGER_RTT_WriteString(0, " communication failed\n");
+				OSA_TimeDelay(gWarpMenuPrintDelayMilliseconds);
+			}
+			else 
+			{
+				SEGGER_RTT_WriteString(0, " read succeeded\n");
+				SEGGER_RTT_printf(0, " 0x%02x register: 0x%02x 0x%02x\n", i, i2c_buffer[0], i2c_buffer[1]);
+				OSA_TimeDelay(gWarpMenuPrintDelayMilliseconds);
+			}
+			OSA_TimeDelay(1000);
+		}
+	}
+
+
 	while (1)
 	{
 		/*
