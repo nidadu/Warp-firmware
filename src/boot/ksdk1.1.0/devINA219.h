@@ -4,4 +4,5 @@
 
 void		initINA219(const uint8_t i2cAddress, WarpI2CDeviceState volatile *  deviceStatePointer);
 WarpStatus	readSensorRegisterINA219(uint8_t deviceRegister, int numberOfBytes);
-void		printSensorDataINA219(bool hexModeFlag);
+WarpStatus  writeSensorRegisterINA219(uint8_t deviceRegister, uint16_t payload, uint16_t menuI2cPullupValue);
+void		printSensorDataINA219(bool hexModeFlag, uint8_t deviceRegister);

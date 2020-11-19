@@ -67,8 +67,8 @@ enum _gpio_pins
 	kWarpPinCLKOUT32K			= GPIO_MAKE_PIN(HW_GPIOB, 13),		/*	Warp KL03_CLKOUT32K	--> PTB13									*/
 
 	kWarpPinADXL362_CS			= GPIO_MAKE_PIN(HW_GPIOB, 2),		/*	Warp ADXL362_CS		--> PTB2		(was kWarpPinADXL362_CS_PAN1326_nSHUTD in Warp v2)	*/
-	kWarpPinI2C0_SCL			= GPIO_MAKE_PIN(HW_GPIOB, 0),		/*	Warp KL03_I2C0_SCL	--> PTB0 instead of PTB3									*/
-	kWarpPinI2C0_SDA			= GPIO_MAKE_PIN(HW_GPIOB, 1),		/*	Warp KL03_I2C0_SDA	--> PTB1 instead of PTB4									*/
+	kWarpPinI2C0_SCL			= GPIO_MAKE_PIN(HW_GPIOB, 3),		/*	Warp KL03_I2C0_SCL	--> PTB3									*/
+	kWarpPinI2C0_SDA			= GPIO_MAKE_PIN(HW_GPIOB, 4),		/*	Warp KL03_I2C0_SDA	--> PTB4									*/
 	kWarpPinSPI_MISO			= GPIO_MAKE_PIN(HW_GPIOA, 6),		/*	Warp KL03_SPI_MISO	--> PTA6									*/
 	kWarpPinSPI_MOSI			= GPIO_MAKE_PIN(HW_GPIOA, 7),		/*	Warp KL03_SPI_MOSI	--> PTA7									*/
 	kWarpPinTPS82740A_CTLEN			= GPIO_MAKE_PIN(HW_GPIOA, 9),		/*	Warp kWarpPinTPS82740A_CTLEN --> PTA9		(was kWarpPinSPI_SCK_I2C_PULLUP_EN in Warp v2)		*/	

@@ -72,7 +72,7 @@
 #	include "devCCS811.h"
 #	include "devAMG8834.h"
 #	include "devSSD1331.h"
-//#	include "devINA219.h"
+#	include "devINA219.h"
 //#	include "devMAX11300.h"
 //#include "devTCS34725.h"
 //#include "devSI4705.h"
@@ -122,9 +122,9 @@ volatile WarpI2CDeviceState			deviceBMX055magState;
 volatile WarpI2CDeviceState			deviceMMA8451QState;
 #endif
 
-//#ifdef WARP_BUILD_ENABLE_DEVINA219
-//volatile WarpI2CDeviceState			deviceINA219State;
-//#endif
+#ifdef WARP_BUILD_ENABLE_DEVINA219
+volatile WarpI2CDeviceState			deviceINA219State;
+#endif
 
 #ifdef WARP_BUILD_ENABLE_DEVLPS25H
 volatile WarpI2CDeviceState			deviceLPS25HState;
@@ -484,12 +484,10 @@ enableI2Cpins(uint8_t pullupValue)
 	CLOCK_SYS_EnableI2cClock(0);
 
 	/*	Warp KL03_I2C0_SCL	--> PTB3	(ALT2 == I2C)		*/
-	//PORT_HAL_SetMuxMode(PORTB_BASE, 3, kPortMuxAlt2);
-	PORT_HAL_SetMuxMode(PORTB_BASE, 0, kPortMuxAlt4);
+	PORT_HAL_SetMuxMode(PORTB_BASE, 3, kPortMuxAlt2);
 
 	/*	Warp KL03_I2C0_SDA	--> PTB4	(ALT2 == I2C)		*/
-	//PORT_HAL_SetMuxMode(PORTB_BASE, 4, kPortMuxAlt2);
-	PORT_HAL_SetMuxMode(PORTB_BASE, 1, kPortMuxAlt4);
+	PORT_HAL_SetMuxMode(PORTB_BASE, 4, kPortMuxAlt2);
 
 
 	I2C_DRV_MasterInit(0 /* I2C instance */, (i2c_master_state_t *)&i2cMasterState);
@@ -1259,9 +1257,9 @@ main(void)
 	initMMA8451Q(	0x1D	/* i2cAddress */,	&deviceMMA8451QState	);
 #endif
 
-//#ifdef WARP_BUILD_ENABLE_DEVINA219
-//	initINA219(	0x40	/* i2cAddress */,	&deviceINA219State	);
-//#endif
+#ifdef WARP_BUILD_ENABLE_DEVINA219
+	initINA219(	0x40	/* i2cAddress */,	&deviceINA219State	);
+#endif
 
 
 #ifdef WARP_BUILD_ENABLE_DEVLPS25H
@@ -1369,90 +1367,19 @@ main(void)
 
 	devSSD1331init();
 
+
 	enableI2Cpins(menuI2cPullupValue);
-	//writeSensorRegisterINA219(0x05, 0x39, menuI2cPullupValue);
-	i2c_status_t	status_wr;
-	uint8_t calibration_value[2] = {0x37, 0x39};
-	i2c_device_t slave =
-	{
-		.address = 0x40,
-		.baudRate_kbps = gWarpI2cBaudRateKbps
-	};
-	status_wr = I2C_DRV_MasterSendDataBlocking(
-							0 /* I2C instance */,
-							&slave,
-							0x05,
-							1,
-							(uint8_t *)calibration_value,
-							2,
-							gWarpI2cTimeoutMilliseconds);
+	writeSensorRegisterINA219(0x05, 0xA000, menuI2cPullupValue);
+	
+	uint8_t current_reg[1] = {0x04};
+	uint8_t shunt_reg[1] = {0x01};
 
-	if (status_wr != kStatus_I2C_Success)
-	{
-        SEGGER_RTT_WriteString(0, " communication failed\n");
-		OSA_TimeDelay(gWarpMenuPrintDelayMilliseconds);
-	}
-	else 
-	{
-        SEGGER_RTT_WriteString(0, " writing succeeded\n");
-		OSA_TimeDelay(gWarpMenuPrintDelayMilliseconds);
-	}
-
-	i2c_status_t	status_r;
-	uint8_t calibration_register = 0x05;
-	uint8_t current_register = 0x03;
-	uint8_t current_i2c_buffer[2];
-	uint8_t i2c_buffer[2];
-	status_r = I2C_DRV_MasterReceiveDataBlocking(
-							0 /* I2C peripheral instance */,
-							&slave,
-							(uint8_t *)calibration_register,
-							1,
-							(uint8_t *)i2c_buffer,
-							2,
-							gWarpI2cTimeoutMilliseconds);
-
-	if (status_r != kStatus_I2C_Success)
-	{
-        SEGGER_RTT_WriteString(0, " communication failed\n");
-		OSA_TimeDelay(gWarpMenuPrintDelayMilliseconds);
-	}
-	else 
-	{
-        SEGGER_RTT_WriteString(0, " read succeeded\n");
-		SEGGER_RTT_printf(0, " calibration register: 0x%02x 0x%02x\n", i2c_buffer[0], i2c_buffer[1]);
-		OSA_TimeDelay(gWarpMenuPrintDelayMilliseconds);
-	}
 	while(1)
 	{
-		for (int i=0x00; i<0x06; i++)
-		{
-			status_r = I2C_DRV_MasterReceiveDataBlocking(
-								0 /* I2C peripheral instance */,
-								&slave,
-								i,
-								1,
-								(uint8_t *)current_i2c_buffer,
-								2,
-								gWarpI2cTimeoutMilliseconds);
-
-		if (status_r != kStatus_I2C_Success)
-		{
-			SEGGER_RTT_WriteString(0, " communication failed\n");
-			OSA_TimeDelay(gWarpMenuPrintDelayMilliseconds);
-		}
-		else 
-		{
-			SEGGER_RTT_WriteString(0, " read succeeded\n");
-			SEGGER_RTT_printf(0, " 0x%02x register: 0x%02x 0x%02x\n", i, current_i2c_buffer[0], current_i2c_buffer[1]);
-			OSA_TimeDelay(gWarpMenuPrintDelayMilliseconds);
-		}
+		printSensorDataINA219(0, 0x04);
 		OSA_TimeDelay(1000);
-		}
-		
 	}
-
-	//printSensorDataINA219(1);
+	
 	disableI2Cpins();
 
 	while (1)
@@ -1846,14 +1773,7 @@ main(void)
 						break;
 					}
 #endif
-#ifdef WARP_BUILD_ENABLE_DEVINA219
-					case 'l':
-					{
-						menuTargetSensor = kWarpSensorINA219;
-						menuI2cDevice = &deviceINA219State;
-						break;
-					}
-#endif
+
 					default:
 					{
 #ifdef WARP_BUILD_ENABLE_SEGGER_RTT_PRINTF

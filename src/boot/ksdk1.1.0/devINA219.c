@@ -25,26 +25,65 @@ void
 initINA219(const uint8_t i2cAddress, WarpI2CDeviceState volatile *  deviceStatePointer)
 {
 	deviceStatePointer->i2cAddress	= i2cAddress;
-	deviceStatePointer->signalType	= (	kWarpTypeMaskAccelerationX |
-						kWarpTypeMaskAccelerationY |
-						kWarpTypeMaskAccelerationZ |
-						kWarpTypeMaskTemperature
-					);
     SEGGER_RTT_WriteString(0, " INA219 initialized\n");
 	return;
 }
 
+WarpStatus
+writeSensorRegisterINA219(uint8_t deviceRegister, uint16_t payload, uint16_t menuI2cPullupValue)
+{
+	uint8_t		commandByte[1];
+	uint8_t		payloadByte[2] = {payload >> 8, payload & 0xFF};
+	i2c_status_t	status;
+
+	switch (deviceRegister)
+	{
+		case 0x00: case 0x05: 
+		{
+			/* OK */
+			break;
+		}
+		
+		default:
+		{
+			return kWarpStatusBadDeviceCommand;
+		}
+	}
+
+	i2c_device_t slave =
+	{
+		.address = deviceINA219State.i2cAddress,
+		.baudRate_kbps = gWarpI2cBaudRateKbps
+	};
+
+	commandByte[0] = deviceRegister;
+	status = I2C_DRV_MasterSendDataBlocking(
+							0 /* I2C instance */,
+							&slave,
+							commandByte,
+							1,
+							payloadByte,
+							2,
+							gWarpI2cTimeoutMilliseconds);
+	if (status != kStatus_I2C_Success)
+	{
+		SEGGER_RTT_printf(0, "write communication failed");
+		return kWarpStatusDeviceCommunicationFailed;
+	}
+	else
+	{
+		SEGGER_RTT_printf(0, "write worked");
+	}
+	
+
+	return kWarpStatusOK;
+}
 
 WarpStatus
 readSensorRegisterINA219(uint8_t deviceRegister, int numberOfBytes)
 {
-    SEGGER_RTT_WriteString(0, " readSensorRegisterINA219 called\n");
-    
 	uint8_t		cmdBuf[1] = {0xFF};
-    
 	i2c_status_t	status;
-
-
 	
     USED(numberOfBytes); 
     
@@ -64,13 +103,11 @@ readSensorRegisterINA219(uint8_t deviceRegister, int numberOfBytes)
 		}
 	}
 
-
 	i2c_device_t slave =
 	{
 		.address = deviceINA219State.i2cAddress,
 		.baudRate_kbps = gWarpI2cBaudRateKbps
 	};
-
 
 	cmdBuf[0] = deviceRegister;
 
@@ -85,7 +122,7 @@ readSensorRegisterINA219(uint8_t deviceRegister, int numberOfBytes)
 
 	if (status != kStatus_I2C_Success)
 	{
-        SEGGER_RTT_WriteString(0, " communication failed\n");
+        SEGGER_RTT_WriteString(0, " read communication failed\n");
 		return kWarpStatusDeviceCommunicationFailed;
 	}
 
@@ -93,29 +130,26 @@ readSensorRegisterINA219(uint8_t deviceRegister, int numberOfBytes)
 }
 
 void
-printSensorDataINA219(bool hexModeFlag)
+printSensorDataINA219(bool hexModeFlag, uint8_t deviceRegister)
 {
-    SEGGER_RTT_WriteString(0, " printSensorDataINA219 called\n");
 	uint16_t	readSensorRegisterValueLSB;
 	uint16_t	readSensorRegisterValueMSB;
 	int16_t		readSensorRegisterValueCombined;
 	WarpStatus	i2cReadStatus;
 
-
 	/*
-	 *  read 2 bytes from shunt voltage register (01h)
+	 *  read 2 bytes from a register
 	 */
-	i2cReadStatus = readSensorRegisterINA219(0x05, 2 /* numberOfBytes */);
+	i2cReadStatus = readSensorRegisterINA219(deviceRegister, 2 /* numberOfBytes */);
 	readSensorRegisterValueMSB = deviceINA219State.i2cBuffer[0];
 	readSensorRegisterValueLSB = deviceINA219State.i2cBuffer[1];
 	readSensorRegisterValueCombined = (readSensorRegisterValueMSB << 8) | (readSensorRegisterValueLSB);
 
-    /*
-    multiply by LSB that is 10uV
-    */
-    //readSensorRegisterValueCombined = ( readSensorRegisterValueCombined >> 3 ) * 4;
+	/*
+	*	convert to mA (divide by 100) and then to uA (multiply by 1000), so in total divide multiply by 10
+	*/
+	int current_register_conversion = 10;
 
-    SEGGER_RTT_WriteString(0, " kinda works,");
 	if (i2cReadStatus != kWarpStatusOK)
 	{
 		SEGGER_RTT_WriteString(0, " ----,");
@@ -124,11 +158,15 @@ printSensorDataINA219(bool hexModeFlag)
 	{
 		if (hexModeFlag)
 		{
-			SEGGER_RTT_printf(0, " 0x%02x 0x%02x,", readSensorRegisterValueMSB, readSensorRegisterValueLSB);
+			SEGGER_RTT_printf(0, " 0x%02x 0x%02x,\n", readSensorRegisterValueMSB, readSensorRegisterValueLSB);
+		}
+		else if (deviceRegister == 0x04) // current register
+		{
+			SEGGER_RTT_printf(0, " %d,\n", readSensorRegisterValueCombined*current_register_conversion);
 		}
 		else
 		{
-			SEGGER_RTT_printf(0, " %d,", readSensorRegisterValueCombined);
+			SEGGER_RTT_printf(0, " %d,\n", readSensorRegisterValueCombined);
 		}
 	}
 }
