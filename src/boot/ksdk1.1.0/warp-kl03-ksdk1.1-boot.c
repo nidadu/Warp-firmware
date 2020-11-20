@@ -1367,17 +1367,13 @@ main(void)
 
 	devSSD1331init();
 
-
 	enableI2Cpins(menuI2cPullupValue);
-	writeSensorRegisterINA219(0x05, 0xA000, menuI2cPullupValue);
-	
-	uint8_t current_reg[1] = {0x04};
-	uint8_t shunt_reg[1] = {0x01};
+	writeSensorRegisterINA219(0x05, 0x7B13, menuI2cPullupValue);
 
-	while(1)
+	for (int i = 0; i < 1000; i++)
 	{
 		printSensorDataINA219(0, 0x04);
-		OSA_TimeDelay(1000);
+		OSA_TimeDelay(gWarpMenuPrintDelayMilliseconds);
 	}
 	
 	disableI2Cpins();

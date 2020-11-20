@@ -69,12 +69,7 @@ writeSensorRegisterINA219(uint8_t deviceRegister, uint16_t payload, uint16_t men
 	{
 		SEGGER_RTT_printf(0, "write communication failed");
 		return kWarpStatusDeviceCommunicationFailed;
-	}
-	else
-	{
-		SEGGER_RTT_printf(0, "write worked");
-	}
-	
+	}	
 
 	return kWarpStatusOK;
 }
@@ -146,9 +141,9 @@ printSensorDataINA219(bool hexModeFlag, uint8_t deviceRegister)
 	readSensorRegisterValueCombined = (readSensorRegisterValueMSB << 8) | (readSensorRegisterValueLSB);
 
 	/*
-	*	convert to mA (divide by 100) and then to uA (multiply by 1000), so in total divide multiply by 10
+	*	convert to uA (multiply by 13)
 	*/
-	int current_register_conversion = 10;
+	int current_register_conversion = 13;
 
 	if (i2cReadStatus != kWarpStatusOK)
 	{
@@ -162,7 +157,8 @@ printSensorDataINA219(bool hexModeFlag, uint8_t deviceRegister)
 		}
 		else if (deviceRegister == 0x04) // current register
 		{
-			SEGGER_RTT_printf(0, " %d,\n", readSensorRegisterValueCombined*current_register_conversion);
+			
+			SEGGER_RTT_printf(0, " %d,\n", readSensorRegisterValueCombined*current_register_conversion); //current lsb
 		}
 		else
 		{

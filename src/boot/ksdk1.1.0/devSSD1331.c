@@ -168,13 +168,13 @@ devSSD1331init(void)
 	writeCommand(0xFF);     // B color of the fill area
 	writeCommand(0x00);     // A color of the fill area
 
-	//writeCommand(0x82);	// set contrast for B segment
-	//writeCommand(0xFF);	// set max value (255d)
+	writeCommand(0x82);	// set contrast for B segment
+	writeCommand(0xFF);	// set max value (255d)
 
-	//writeCommand(0x87);	// set maximum master current
-	//writeCommand(0x0F);	// set maximum master current 
+	writeCommand(0x87);	// set maximum master current
+	writeCommand(0x0F);	// set maximum master current 
 	
-	//writeCommand(0xB9);	// enable gray scale
+	writeCommand(0xB9);	// enable gray scale
 	
 	return 0;
 }
