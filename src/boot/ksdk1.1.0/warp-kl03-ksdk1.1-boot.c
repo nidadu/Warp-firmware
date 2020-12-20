@@ -1425,7 +1425,7 @@ main(void)
 								gWarpI2cTimeoutMilliseconds);
 		uint16_t soil_MSB = SOIL_data[0];
 		uint16_t soil_LSB = SOIL_data[1];
-		int16_t soil_reading = ((soil_MSB & 0xFF) << 8) | (soil_LSB);
+		uint16_t soil_reading = ((soil_MSB & 0xFF) << 8) | (soil_LSB);
 
 		if (status_SOIL_r != kStatus_I2C_Success)
 		{
@@ -1478,9 +1478,9 @@ main(void)
 								2,
 								gWarpI2cTimeoutMilliseconds);
 
-		int16_t hum_MSB = humidity_data[0];
-		int16_t hum_LSB = humidity_data[1];
-		int16_t humidity_reading = ((hum_MSB & 0xFF) << 8) | (hum_LSB);
+		uint16_t hum_MSB = humidity_data[0];
+		uint16_t hum_LSB = humidity_data[1];
+		uint16_t humidity_reading = ((hum_MSB & 0xFF) << 8) | (hum_LSB);
 		humidity_reading = 125 * humidity_reading / 65536 - 6;
 
 		if (status_SI7021_hum_r2 != kStatus_I2C_Success)
@@ -1534,9 +1534,9 @@ main(void)
 								2,
 								gWarpI2cTimeoutMilliseconds);
 
-		int16_t temp_MSB = temperature_data[0];
-		int16_t temp_LSB = temperature_data[1];
-		int16_t temperature_reading = ((temp_MSB & 0xFF) << 8) | (temp_LSB);
+		uint16_t temp_MSB = temperature_data[0];
+		uint16_t temp_LSB = temperature_data[1];
+		uint16_t temperature_reading = ((temp_MSB & 0xFF) << 8) | (temp_LSB);
 		temperature_reading = 175 * temperature_reading / 65536 - 46;
 
 		if ((status_SI7021_temp_r2 != kStatus_I2C_Success) || (status_SI7021_temp_r2 != kStatus_I2C_Success))
