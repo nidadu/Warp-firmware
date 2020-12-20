@@ -1375,7 +1375,7 @@ main(void)
 	uint8_t calibration_value[2] = {0x37, 0x39};
 	i2c_device_t slave =
 	{
-		.address = 0x40,
+		.address = 0x41,//////////////////////////////////////////
 		.baudRate_kbps = gWarpI2cBaudRateKbps
 	};
 	status_wr = I2C_DRV_MasterSendDataBlocking(
@@ -1423,33 +1423,57 @@ main(void)
 		SEGGER_RTT_printf(0, " calibration register: 0x%02x 0x%02x\n", i2c_buffer[0], i2c_buffer[1]);
 		OSA_TimeDelay(gWarpMenuPrintDelayMilliseconds);
 	}
-	while(1)
-	{
-		for (int i=0x00; i<0x06; i++)
-		{
-			status_r = I2C_DRV_MasterReceiveDataBlocking(
-								0 /* I2C peripheral instance */,
-								&slave,
-								i,
-								1,
-								(uint8_t *)current_i2c_buffer,
-								2,
-								gWarpI2cTimeoutMilliseconds);
 
-		if (status_r != kStatus_I2C_Success)
-		{
-			SEGGER_RTT_WriteString(0, " communication failed\n");
-			OSA_TimeDelay(gWarpMenuPrintDelayMilliseconds);
-		}
-		else 
-		{
-			SEGGER_RTT_WriteString(0, " read succeeded\n");
-			SEGGER_RTT_printf(0, " 0x%02x register: 0x%02x 0x%02x\n", i, current_i2c_buffer[0], current_i2c_buffer[1]);
-			OSA_TimeDelay(gWarpMenuPrintDelayMilliseconds);
-		}
-		OSA_TimeDelay(1000);
-		}
-		
+	i2c_status_t	status_si7021;
+	i2c_device_t si7021 =
+	{
+		.address = 0x40,
+		.baudRate_kbps = gWarpI2cBaudRateKbps
+	};
+	uint8_t humidity = 0xF5;
+	uint8_t temp = 0xF3;
+	uint8_t send[2];
+	send [0] = 0xFA;
+	send [1] = 0x0F;
+	uint8_t data[2];
+	status_si7021 = I2C_DRV_MasterSendDataBlocking(
+							0 /* I2C instance */,
+							&si7021,
+							NULL,
+							0,
+							(uint8_t *)send,
+							2,
+							gWarpI2cTimeoutMilliseconds);
+
+	if (status_si7021 != kStatus_I2C_Success)
+	{
+        SEGGER_RTT_WriteString(0, " si7021 communication failed\n");
+		OSA_TimeDelay(gWarpMenuPrintDelayMilliseconds);
+	}
+	else 
+	{
+        SEGGER_RTT_WriteString(0, " si7021 writing succeeded\n");
+		OSA_TimeDelay(gWarpMenuPrintDelayMilliseconds);
+	}
+	status_si7021 = I2C_DRV_MasterReceiveDataBlocking(
+							0 /* I2C peripheral instance */,
+							&si7021,
+							NULL,
+							0,
+							(uint8_t *)data,
+							2,
+							gWarpI2cTimeoutMilliseconds);
+
+	if (status_si7021 != kStatus_I2C_Success)
+	{
+        SEGGER_RTT_WriteString(0, " si7021 communication failed\n");
+		OSA_TimeDelay(gWarpMenuPrintDelayMilliseconds);
+	}
+	else 
+	{
+        SEGGER_RTT_WriteString(0, " si7021 read succeeded\n");
+		SEGGER_RTT_printf(0, " read: 0x%02x 0x%02x\n", data[0], data[1]);
+		OSA_TimeDelay(gWarpMenuPrintDelayMilliseconds);
 	}
 
 	//printSensorDataINA219(1);
