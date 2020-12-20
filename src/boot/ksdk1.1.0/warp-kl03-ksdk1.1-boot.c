@@ -1367,115 +1367,193 @@ main(void)
 	 */
 #endif
 
-	devSSD1331init();
-
 	enableI2Cpins(menuI2cPullupValue);
-	//writeSensorRegisterINA219(0x05, 0x39, menuI2cPullupValue);
-	i2c_status_t	status_wr;
-	uint8_t calibration_value[2] = {0x37, 0x39};
-	i2c_device_t slave =
+
+	i2c_status_t	status_SOIL_w, status_SOIL_r;
+	uint8_t read_SOIL[2] = {0x0F, 0x10};
+	i2c_device_t devSOIL =
 	{
-		.address = 0x41,//////////////////////////////////////////
+		.address = 0x36,
 		.baudRate_kbps = gWarpI2cBaudRateKbps
 	};
-	status_wr = I2C_DRV_MasterSendDataBlocking(
-							0 /* I2C instance */,
-							&slave,
-							0x05,
-							1,
-							(uint8_t *)calibration_value,
-							2,
-							gWarpI2cTimeoutMilliseconds);
 
-	if (status_wr != kStatus_I2C_Success)
-	{
-        SEGGER_RTT_WriteString(0, " communication failed\n");
-		OSA_TimeDelay(gWarpMenuPrintDelayMilliseconds);
-	}
-	else 
-	{
-        SEGGER_RTT_WriteString(0, " writing succeeded\n");
-		OSA_TimeDelay(gWarpMenuPrintDelayMilliseconds);
-	}
-
-	i2c_status_t	status_r;
-	uint8_t calibration_register = 0x05;
-	uint8_t current_register = 0x03;
-	uint8_t current_i2c_buffer[2];
-	uint8_t i2c_buffer[2];
-	status_r = I2C_DRV_MasterReceiveDataBlocking(
-							0 /* I2C peripheral instance */,
-							&slave,
-							(uint8_t *)calibration_register,
-							1,
-							(uint8_t *)i2c_buffer,
-							2,
-							gWarpI2cTimeoutMilliseconds);
-
-	if (status_r != kStatus_I2C_Success)
-	{
-        SEGGER_RTT_WriteString(0, " communication failed\n");
-		OSA_TimeDelay(gWarpMenuPrintDelayMilliseconds);
-	}
-	else 
-	{
-        SEGGER_RTT_WriteString(0, " read succeeded\n");
-		SEGGER_RTT_printf(0, " calibration register: 0x%02x 0x%02x\n", i2c_buffer[0], i2c_buffer[1]);
-		OSA_TimeDelay(gWarpMenuPrintDelayMilliseconds);
-	}
-
-	i2c_status_t	status_si7021;
-	i2c_device_t si7021 =
+	i2c_status_t	status_SI7021_hum_w, status_SI7021_hum_r1, status_SI7021_hum_r2, \
+					status_SI7021_temp_w, status_SI7021_temp_r1, status_SI7021_temp_r2;
+	uint8_t read_humidity[2] = {0xE5, 0x00};
+	uint8_t read_temperature[2] = {0xE3, 0x00};
+	i2c_device_t devSI7021 =
 	{
 		.address = 0x40,
 		.baudRate_kbps = gWarpI2cBaudRateKbps
 	};
-	uint8_t humidity = 0xF5;
-	uint8_t temp = 0xF3;
-	uint8_t send[2];
-	send [0] = 0xFA;
-	send [1] = 0x0F;
-	uint8_t data[2];
-	status_si7021 = I2C_DRV_MasterSendDataBlocking(
-							0 /* I2C instance */,
-							&si7021,
-							NULL,
-							0,
-							(uint8_t *)send,
-							2,
-							gWarpI2cTimeoutMilliseconds);
 
-	if (status_si7021 != kStatus_I2C_Success)
+	while(1)
 	{
-        SEGGER_RTT_WriteString(0, " si7021 communication failed\n");
-		OSA_TimeDelay(gWarpMenuPrintDelayMilliseconds);
-	}
-	else 
-	{
-        SEGGER_RTT_WriteString(0, " si7021 writing succeeded\n");
-		OSA_TimeDelay(gWarpMenuPrintDelayMilliseconds);
-	}
-	status_si7021 = I2C_DRV_MasterReceiveDataBlocking(
-							0 /* I2C peripheral instance */,
-							&si7021,
-							NULL,
-							0,
-							(uint8_t *)data,
-							2,
-							gWarpI2cTimeoutMilliseconds);
+		uint8_t SOIL_data[2];
+		uint8_t humidity_data[2];
+		uint8_t temperature_data[2];
+		uint8_t i2c_buffer[2];
 
-	if (status_si7021 != kStatus_I2C_Success)
-	{
-        SEGGER_RTT_WriteString(0, " si7021 communication failed\n");
-		OSA_TimeDelay(gWarpMenuPrintDelayMilliseconds);
-	}
-	else 
-	{
-        SEGGER_RTT_WriteString(0, " si7021 read succeeded\n");
-		SEGGER_RTT_printf(0, " read: 0x%02x 0x%02x\n", data[0], data[1]);
-		OSA_TimeDelay(gWarpMenuPrintDelayMilliseconds);
-	}
+		/* Get SOIL reading */
+		status_SOIL_w = I2C_DRV_MasterSendDataBlocking(
+								0 /* I2C instance */,
+								&devSOIL,
+								NULL,
+								0,
+								(uint8_t *)read_SOIL,
+								2,
+								gWarpI2cTimeoutMilliseconds);
 
+		if (status_SOIL_w != kStatus_I2C_Success)
+		{
+			SEGGER_RTT_WriteString(0, " SOIL sensor communication failed\n");
+			OSA_TimeDelay(gWarpMenuPrintDelayMilliseconds);
+		}
+		else 
+		{
+			SEGGER_RTT_WriteString(0, " SOIL sensor writing succeeded\n");
+			OSA_TimeDelay(gWarpMenuPrintDelayMilliseconds);
+		}
+
+		status_SOIL_r = I2C_DRV_MasterReceiveDataBlocking(
+								0 /* I2C peripheral instance */,
+								&devSOIL,
+								NULL,
+								0,
+								(uint8_t *)SOIL_data,
+								2,
+								gWarpI2cTimeoutMilliseconds);
+		uint16_t soil_MSB = SOIL_data[0];
+		uint16_t soil_LSB = SOIL_data[1];
+		int16_t soil_reading = ((soil_MSB & 0xFF) << 8) | (soil_LSB);
+
+		if (status_SOIL_r != kStatus_I2C_Success)
+		{
+			SEGGER_RTT_WriteString(0, " SOIL sensor communication failed\n");
+			OSA_TimeDelay(gWarpMenuPrintDelayMilliseconds);
+		}
+		else 
+		{
+			SEGGER_RTT_WriteString(0, " SOIL sensor read succeeded\n");
+			SEGGER_RTT_printf(0, " read: 0x%02x 0x%02x,", SOIL_data[0], SOIL_data[1]);
+			SEGGER_RTT_printf(0, " %d\n", soil_reading);
+			OSA_TimeDelay(gWarpMenuPrintDelayMilliseconds);
+		}
+
+		/* Get SI7021 humidity reading */
+		status_SI7021_hum_w = I2C_DRV_MasterSendDataBlocking(
+								0 /* I2C instance */,
+								&devSI7021,
+								NULL,
+								0,
+								(uint8_t *)read_humidity,
+								2,
+								gWarpI2cTimeoutMilliseconds);
+
+		if (status_SI7021_hum_w != kStatus_I2C_Success)
+		{
+			SEGGER_RTT_WriteString(0, " SI7021 humidity write communication failed\n");
+			OSA_TimeDelay(gWarpMenuPrintDelayMilliseconds);
+		}
+		else 
+		{
+			SEGGER_RTT_WriteString(0, " SI7021 humidity writing succeeded\n");
+			OSA_TimeDelay(gWarpMenuPrintDelayMilliseconds);
+		}
+/*
+		status_SI7021_hum_r1 = I2C_DRV_MasterReceiveDataBlocking(
+								0,
+								&devSI7021,
+								NULL,
+								0,
+								(uint8_t *)i2c_buffer,
+								2,
+								gWarpI2cTimeoutMilliseconds);*/
+		status_SI7021_hum_r2 = I2C_DRV_MasterReceiveDataBlocking(
+								0 /* I2C peripheral instance */,
+								&devSI7021,
+								NULL,
+								0,
+								(uint8_t *)humidity_data,
+								2,
+								gWarpI2cTimeoutMilliseconds);
+
+		int16_t hum_MSB = humidity_data[0];
+		int16_t hum_LSB = humidity_data[1];
+		int16_t humidity_reading = ((hum_MSB & 0xFF) << 8) | (hum_LSB);
+		humidity_reading = 125 * humidity_reading / 65536 - 6;
+
+		if (status_SI7021_hum_r2 != kStatus_I2C_Success)
+		{
+			SEGGER_RTT_WriteString(0, " SI7021 humidity read communication failed\n");
+			OSA_TimeDelay(gWarpMenuPrintDelayMilliseconds);
+		}
+		else 
+		{
+			SEGGER_RTT_WriteString(0, " SI7021 humidity read succeeded\n");
+			SEGGER_RTT_printf(0, " read: 0x%02x 0x%02x,", humidity_data[0], humidity_data[1]);
+			SEGGER_RTT_printf(0, " %d\n", humidity_reading);
+			OSA_TimeDelay(gWarpMenuPrintDelayMilliseconds);
+		}
+
+		/* Get SI7021 temperature reading */
+		status_SI7021_temp_w = I2C_DRV_MasterSendDataBlocking(
+								0 /* I2C instance */,
+								&devSI7021,
+								NULL,
+								0,
+								(uint8_t *)read_temperature,
+								2,
+								gWarpI2cTimeoutMilliseconds);
+
+		if (status_SI7021_temp_w != kStatus_I2C_Success)
+		{
+			SEGGER_RTT_WriteString(0, " SI7021 temp write communication failed\n");
+			OSA_TimeDelay(gWarpMenuPrintDelayMilliseconds);
+		}
+		else 
+		{
+			SEGGER_RTT_WriteString(0, " SI7021 temperature writing succeeded\n");
+			OSA_TimeDelay(gWarpMenuPrintDelayMilliseconds);
+		}
+/*
+		status_SI7021_temp_r1 = I2C_DRV_MasterReceiveDataBlocking(
+								0,
+								&devSI7021,
+								NULL,
+								0,
+								(uint8_t *)i2c_buffer,
+								2,
+								gWarpI2cTimeoutMilliseconds);*/
+		status_SI7021_temp_r2 = I2C_DRV_MasterReceiveDataBlocking(
+								0 /* I2C peripheral instance */,
+								&devSI7021,
+								NULL,
+								0,
+								(uint8_t *)temperature_data,
+								2,
+								gWarpI2cTimeoutMilliseconds);
+
+		int16_t temp_MSB = temperature_data[0];
+		int16_t temp_LSB = temperature_data[1];
+		int16_t temperature_reading = ((temp_MSB & 0xFF) << 8) | (temp_LSB);
+		temperature_reading = 175 * temperature_reading / 65536 - 46;
+
+		if ((status_SI7021_temp_r2 != kStatus_I2C_Success) || (status_SI7021_temp_r2 != kStatus_I2C_Success))
+		{
+			SEGGER_RTT_WriteString(0, " SI7021 temperature read communication failed\n");
+			OSA_TimeDelay(gWarpMenuPrintDelayMilliseconds);
+		}
+		else 
+		{
+			SEGGER_RTT_WriteString(0, " SI7021 temperature read succeeded\n");
+			SEGGER_RTT_printf(0, " read: 0x%02x 0x%02x,", temperature_data[0], temperature_data[1]);
+			SEGGER_RTT_printf(0, " %d\n\n", temperature_reading);
+			OSA_TimeDelay(gWarpMenuPrintDelayMilliseconds);
+		}
+
+		OSA_TimeDelay(3000);
+	}
 	//printSensorDataINA219(1);
 	disableI2Cpins();
 
