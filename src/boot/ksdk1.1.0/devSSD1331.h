@@ -43,3 +43,59 @@ typedef enum
 } SSD1331Commands;
 
 int	devSSD1331init(void);
+void writeChar (int a);
+int writeCommand(uint8_t commandByte);
+int writeCommandBuf(uint8_t* commandByteBuf, uint8_t size);
+
+// Screen Settings
+#define width   96-1        // Max X axial direction in screen
+#define height  64-1        // Max Y axial direction in screen
+#define Set_Column_Address  0x15
+#define Set_Row_Address     0x75
+#define contrastA           0x81
+#define contrastB           0x82
+#define contrastC           0x83
+#define display_on          0xAF
+#define display_off         0xAE
+
+// Internal Font size settings
+#define NORMAL  0
+#define WIDE    1
+#define HIGH    2
+#define WH      3
+#define WHx36   4
+#define X_width 6 
+#define Y_height 8 
+
+// GAC hardware acceleration commands
+#define GAC_DRAW_LINE           0x21    // Draw Line
+#define GAC_DRAW_RECTANGLE      0x22    // Rectangle
+#define GAC_COPY_AREA           0x23    // Copy Area
+#define GAC_DIM_WINDOW          0x24    // Dim Window
+#define GAC_CLEAR_WINDOW        0x25    // Clear Window
+#define GAC_FILL_ENABLE_DISABLE 0x26    // Enable Fill
+#define SCROLL_SETUP            0x27    // Setup scroll
+#define SCROLL_STOP             0x2E    // Scroll Stop
+#define SCROLL_START            0x2F    // Scroll Start
+ 
+    void pixel(uint8_t x,uint8_t y,uint16_t Color);
+    void PutChar(uint8_t x,uint8_t y,int a);
+    void FontSizeConvert(int *lpx,int *lpy);
+	void background(uint16_t color);
+	void foreground(uint16_t color);
+	void fillrect(uint8_t x1,uint8_t y1,uint8_t x2,uint8_t y2,uint16_t colorline,uint16_t colorfill);
+	void Fill_Screen(uint16_t color);
+	void line(uint8_t x1,uint8_t y1,uint8_t x2,uint8_t y2,uint16_t color);
+    uint16_t Char_Color;    // text color
+    uint16_t BGround_Color; // background color
+
+    // window location
+    uint8_t _x1;
+    uint8_t _x2;
+    uint8_t _y1;
+    uint8_t _y2;
+    uint8_t char_x;
+    uint8_t char_y;
+    uint8_t chr_size;
+    uint8_t cwidth;       // character's width
+    uint8_t cvert;        // character's height

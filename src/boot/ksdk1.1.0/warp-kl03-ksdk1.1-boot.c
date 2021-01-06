@@ -1367,6 +1367,11 @@ main(void)
 	 */
 #endif
 
+	//int dig = 'A';
+	devSSD1331init();
+	//OSA_TimeDelay(1000);
+	//writeChar(dig);
+
 	enableI2Cpins(menuI2cPullupValue);
 
 	i2c_status_t	status_SOIL_w, status_SOIL_r;
