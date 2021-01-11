@@ -22,7 +22,7 @@ enum
 	kSSD1331PinSCK		= GPIO_MAKE_PIN(HW_GPIOA, 9),
 	kSSD1331PinCSn		= GPIO_MAKE_PIN(HW_GPIOB, 13),
 	kSSD1331PinDC		= GPIO_MAKE_PIN(HW_GPIOA, 12),
-	kSSD1331PinRST		= GPIO_MAKE_PIN(HW_GPIOB, 2),
+	kSSD1331PinRST		= GPIO_MAKE_PIN(HW_GPIOB, 0),
 };
 
 int writeCommand(uint8_t commandByte)
@@ -48,9 +48,6 @@ int writeCommand(uint8_t commandByte)
 					(uint8_t * restrict)&inBuffer[0],
 					1		/* transfer size */,
 					1000		/* timeout in microseconds (unlike I2C which is ms) */);
-    SEGGER_RTT_printf(0, " 0x%02x", commandByte);
-    SEGGER_RTT_WriteString(0, "\n");
-	OSA_TimeDelay(10);
 
 	/*
 	 *	Drive /CS high
@@ -62,8 +59,6 @@ int writeCommand(uint8_t commandByte)
 
 int writeCommandBuf(uint8_t* commandByteBuf, uint8_t size)
 {
-	SEGGER_RTT_WriteString(0, "pradedam transm\n");
-	OSA_TimeDelay(10);
 	spi_status_t status;
 
 	/*
@@ -77,16 +72,12 @@ int writeCommandBuf(uint8_t* commandByteBuf, uint8_t size)
 	 *	Drive DC low (command).
 	 */
 	GPIO_DRV_ClearPinOutput(kSSD1331PinDC);
-    SEGGER_RTT_WriteString(0, "pradedam transm\n");
-	OSA_TimeDelay(10);
 	status = SPI_DRV_MasterTransferBlocking(0	/* master instance */,
 					NULL		/* spi_master_user_config_t */,
 					(const uint8_t * restrict)commandByteBuf,
 					(uint8_t * restrict)&inBuffer[0],
 					size		/* transfer size */,
 					1000		/* timeout in microseconds (unlike I2C which is ms) */);
-    SEGGER_RTT_WriteString(0, "baigiam transm\n");
-	OSA_TimeDelay(10);
 	/*
 	 *	Drive /CS high
 	 */
@@ -175,16 +166,8 @@ devSSD1331init(void)
 	writeCommand(kSSD1331CommandFILL);
 	writeCommand(0x01);
 
-	/*
-	 *	Clear Screen
-	 */
-	writeCommand(kSSD1331CommandCLEAR);
-	writeCommand(0x00);
-	writeCommand(0x00);
-	writeCommand(0x5F);
-	writeCommand(0x3F);
-
-
+    // Clear screen
+    clear();
 
 	/*
 	 *	Any post-initialization drawing commands go here.
@@ -204,26 +187,41 @@ devSSD1331init(void)
     OSA_TimeDelay(500);
 
 	// Set colors for text
-	//foreground(255);
-	//background(0);
+	foreground(255);
+	background(0);
 
-	//Fill_Screen(50);
+    // Font size
+    chr_size = NORMAL;
+
+	Fill_Screen(50);
 
 	return 0;
 }
 
 void writeChar (int a)
 {
-	/*
-	 *	Clear Screen
-	 */
-	writeCommand(kSSD1331CommandCLEAR);
-	writeCommand(0x00);
-	writeCommand(0x00);
-	writeCommand(0x5F);
-	writeCommand(0x3F);
+    clear();
 
 	PutChar(2,2,a);
+}
+
+void writeText(char *s)
+{
+    clear();
+
+    int x_coord = 0;
+    int y_coord = 5;
+
+
+    for (int i=0; i<43; i++)
+    {
+        SEGGER_RTT_WriteString(0, *s);
+	    OSA_TimeDelay(10);
+        PutChar(x_coord, y_coord, *s);
+        s++;
+        x_coord += X_width;
+    }
+    
 }
 
 static const char font6x8[0x60][6] = {
@@ -327,9 +325,7 @@ static const char font6x8[0x60][6] = {
 
 void PutChar (uint8_t column,uint8_t row, int value)
 {
-		SEGGER_RTT_WriteString(0, "PutChar function\n");
-		OSA_TimeDelay(10);
-            // internal font
+        // internal font
         if(value == '\n') {
             char_x = 0;
             char_y = char_y + Y_height;
@@ -380,7 +376,6 @@ void PutChar (uint8_t column,uint8_t row, int value)
 
 void FontSizeConvert(int *lpx,int *lpy)
 {
-    chr_size = NORMAL;
     switch( chr_size ) {
         case WIDE:
             *lpx=2;
@@ -443,6 +438,18 @@ void Fill_Screen(uint16_t color)
 {
     BGround_Color = color;
     fillrect(0,0,width,height,color,color);
+}
+
+void clear(void)
+{
+    /*
+	 *	Clear Screen
+	 */
+	writeCommand(kSSD1331CommandCLEAR);
+	writeCommand(0x00);
+	writeCommand(0x00);
+	writeCommand(0x5F);
+	writeCommand(0x3F);
 }
 
 void fillrect(uint8_t x1,uint8_t y1,uint8_t x2,uint8_t y2,uint16_t colorline,uint16_t colorfill)

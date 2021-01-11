@@ -484,12 +484,10 @@ enableI2Cpins(uint8_t pullupValue)
 	CLOCK_SYS_EnableI2cClock(0);
 
 	/*	Warp KL03_I2C0_SCL	--> PTB3	(ALT2 == I2C)		*/
-	//PORT_HAL_SetMuxMode(PORTB_BASE, 3, kPortMuxAlt2);
-	PORT_HAL_SetMuxMode(PORTB_BASE, 0, kPortMuxAlt4);
+	PORT_HAL_SetMuxMode(PORTB_BASE, 3, kPortMuxAlt2);
 
 	/*	Warp KL03_I2C0_SDA	--> PTB4	(ALT2 == I2C)		*/
-	//PORT_HAL_SetMuxMode(PORTB_BASE, 4, kPortMuxAlt2);
-	PORT_HAL_SetMuxMode(PORTB_BASE, 1, kPortMuxAlt4);
+	PORT_HAL_SetMuxMode(PORTB_BASE, 4, kPortMuxAlt2);
 
 
 	I2C_DRV_MasterInit(0 /* I2C instance */, (i2c_master_state_t *)&i2cMasterState);
@@ -1367,10 +1365,11 @@ main(void)
 	 */
 #endif
 
-	//int dig = 'A';
+	int dig = 'A';
+	char text [44] = "temperature moisture humidity 1234567890%C";
 	devSSD1331init();
-	//OSA_TimeDelay(1000);
-	//writeChar(dig);
+	OSA_TimeDelay(1000);
+	writeText(&text);
 
 	enableI2Cpins(menuI2cPullupValue);
 

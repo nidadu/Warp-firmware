@@ -43,8 +43,9 @@ typedef enum
 } SSD1331Commands;
 
 int	devSSD1331init(void);
+void clear(void);
 void writeChar (int a);
-int writeCommand(uint8_t commandByte);
+void writeText(char *s);
 int writeCommandBuf(uint8_t* commandByteBuf, uint8_t size);
 
 // Screen Settings
@@ -64,8 +65,8 @@ int writeCommandBuf(uint8_t* commandByteBuf, uint8_t size);
 #define HIGH    2
 #define WH      3
 #define WHx36   4
-#define X_width 6 
-#define Y_height 8 
+#define X_width 7 
+#define Y_height 9 
 
 // GAC hardware acceleration commands
 #define GAC_DRAW_LINE           0x21    // Draw Line
