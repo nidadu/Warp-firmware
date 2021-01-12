@@ -169,31 +169,22 @@ devSSD1331init(void)
     // Clear screen
     clear();
 
+    // Font size
+    chr_size = NORMAL;
 	/*
 	 *	Any post-initialization drawing commands go here.
 	 */
 	//...
-	writeCommand(0x22);	// drawing rectangle
-	writeCommand(0x00);	// column starting address
-	writeCommand(0x00);	// row starting address
-	writeCommand(0x5F);	// column ending address
-	writeCommand(0x3F);	// row ending address
-	writeCommand(0x00);	// C color of the line
-	writeCommand(0xFF);     // B color of the line
-	writeCommand(0x00);     // A color of the line
-	writeCommand(0x00);     // C color of the fill area
-	writeCommand(0xFF);     // B color of the fill area
-	writeCommand(0x00);     // A color of the fill area
-    OSA_TimeDelay(500);
 
-	// Set colors for text
-	foreground(255);
-	background(0);
-
-    // Font size
-    chr_size = NORMAL;
-
-	Fill_Screen(50);
+    // Write initial display template
+    background(0);
+	foreground(toRGB(255,255,255));
+	writeText(0, 0, "TEMPERATURE", 12);
+	writeText(36, 10, "----", 5);
+	writeText(0, 20, "HUMIDITY", 9);
+	writeText(39, 30, "---", 4);
+	writeText(0, 40, "MOISTURE", 9);
+	writeText(39, 50, "---", 4);
 
 	return 0;
 }
@@ -205,15 +196,9 @@ void writeChar (int a)
 	PutChar(2,2,a);
 }
 
-void writeText(char *s)
+void writeText(uint8_t x_coord, uint8_t y_coord, char *s, int len)
 {
-    clear();
-
-    int x_coord = 0;
-    int y_coord = 5;
-
-
-    for (int i=0; i<43; i++)
+    for (int i=0; i<len; i++)
     {
         SEGGER_RTT_WriteString(0, *s);
 	    OSA_TimeDelay(10);
@@ -319,23 +304,20 @@ static const char font6x8[0x60][6] = {
     { 0x00,0x08,0x36,0x41,0x41,0x00 } , /* {  */
     { 0x00,0x00,0x7F,0x00,0x00,0x00 } , /* |  */
     { 0x41,0x41,0x36,0x08,0x00,0x00 } , /* }  */
-    { 0x08,0x04,0x08,0x10,0x08,0x00 } , /* ~  */
+    { 0x00,0x02,0x05,0x02,0x00,0x00 } , /* deg masked as ~ */
     { 0x00,0x00,0x00,0x00,0x00,0x00 }    /*null*/
 };
 
 void PutChar (uint8_t column,uint8_t row, int value)
 {
+        char_x  = column;
+        char_y = row;
         // internal font
         if(value == '\n') {
             char_x = 0;
             char_y = char_y + Y_height;
         }
-        if ((value < 31) || (value > 127)) 
-		{
-			SEGGER_RTT_WriteString(0, "value out of range\n");
-			OSA_TimeDelay(10);
-			return;   // test char range
-		}
+        if ((value < 31) || (value > 127)) return;   // test char range
         if (char_x + X_width > width) {
             char_x = 0;
             char_y = char_y + Y_height;
@@ -438,6 +420,17 @@ void Fill_Screen(uint16_t color)
 {
     BGround_Color = color;
     fillrect(0,0,width,height,color,color);
+}
+
+uint16_t toRGB(uint16_t R,uint16_t G,uint16_t B)
+{  
+    uint16_t c;
+    c = R >> 3;
+    c <<= 6;
+    c |= G >> 2;
+    c <<= 5;
+    c |= B >> 3;
+    return c;
 }
 
 void clear(void)

@@ -77,6 +77,7 @@
 //#include "devTCS34725.h"
 //#include "devSI4705.h"
 //#include "devSI7021.h"
+#include "devSoilSensor.h"
 //#include "devLPS25H.h"
 //#include "devADXL362.h"
 //#include "devPAN1326.h"
@@ -1365,21 +1366,17 @@ main(void)
 	 */
 #endif
 
-	int dig = 'A';
-	char text [44] = "temperature moisture humidity 1234567890%C";
-	devSSD1331init();
-	OSA_TimeDelay(1000);
-	writeText(&text);
+	//devSSD1331init();
+
+	//foreground(toRGB(0,255,0));
+	//writeText(36, 10, "22~C", 5);
+	//foreground(toRGB(255,0,0));
+	//writeText(39, 30, "40%", 4);
+	//foreground(toRGB(255,255,0));
+	//writeText(39, 50, "40%", 4);
 
 	enableI2Cpins(menuI2cPullupValue);
 
-	i2c_status_t	status_SOIL_w, status_SOIL_r;
-	uint8_t read_SOIL[2] = {0x0F, 0x10};
-	i2c_device_t devSOIL =
-	{
-		.address = 0x36,
-		.baudRate_kbps = gWarpI2cBaudRateKbps
-	};
 
 	i2c_status_t	status_SI7021_hum_w, status_SI7021_hum_r1, status_SI7021_hum_r2, \
 					status_SI7021_temp_w, status_SI7021_temp_r1, status_SI7021_temp_r2;
@@ -1398,51 +1395,7 @@ main(void)
 		uint8_t temperature_data[2];
 		uint8_t i2c_buffer[2];
 
-		/* Get SOIL reading */
-		status_SOIL_w = I2C_DRV_MasterSendDataBlocking(
-								0 /* I2C instance */,
-								&devSOIL,
-								NULL,
-								0,
-								(uint8_t *)read_SOIL,
-								2,
-								gWarpI2cTimeoutMilliseconds);
-
-		if (status_SOIL_w != kStatus_I2C_Success)
-		{
-			SEGGER_RTT_WriteString(0, " SOIL sensor communication failed\n");
-			OSA_TimeDelay(gWarpMenuPrintDelayMilliseconds);
-		}
-		else 
-		{
-			SEGGER_RTT_WriteString(0, " SOIL sensor writing succeeded\n");
-			OSA_TimeDelay(gWarpMenuPrintDelayMilliseconds);
-		}
-
-		status_SOIL_r = I2C_DRV_MasterReceiveDataBlocking(
-								0 /* I2C peripheral instance */,
-								&devSOIL,
-								NULL,
-								0,
-								(uint8_t *)SOIL_data,
-								2,
-								gWarpI2cTimeoutMilliseconds);
-		uint16_t soil_MSB = SOIL_data[0];
-		uint16_t soil_LSB = SOIL_data[1];
-		uint16_t soil_reading = ((soil_MSB & 0xFF) << 8) | (soil_LSB);
-
-		if (status_SOIL_r != kStatus_I2C_Success)
-		{
-			SEGGER_RTT_WriteString(0, " SOIL sensor communication failed\n");
-			OSA_TimeDelay(gWarpMenuPrintDelayMilliseconds);
-		}
-		else 
-		{
-			SEGGER_RTT_WriteString(0, " SOIL sensor read succeeded\n");
-			SEGGER_RTT_printf(0, " read: 0x%02x 0x%02x,", SOIL_data[0], SOIL_data[1]);
-			SEGGER_RTT_printf(0, " %d\n", soil_reading);
-			OSA_TimeDelay(gWarpMenuPrintDelayMilliseconds);
-		}
+		read_moisture();
 
 		/* Get SI7021 humidity reading */
 		status_SI7021_hum_w = I2C_DRV_MasterSendDataBlocking(

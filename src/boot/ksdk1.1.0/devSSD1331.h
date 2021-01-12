@@ -45,7 +45,7 @@ typedef enum
 int	devSSD1331init(void);
 void clear(void);
 void writeChar (int a);
-void writeText(char *s);
+void writeText(uint8_t x_coord, uint8_t y_coord, char *s, int len);
 int writeCommandBuf(uint8_t* commandByteBuf, uint8_t size);
 
 // Screen Settings
@@ -65,7 +65,7 @@ int writeCommandBuf(uint8_t* commandByteBuf, uint8_t size);
 #define HIGH    2
 #define WH      3
 #define WHx36   4
-#define X_width 7 
+#define X_width 6 
 #define Y_height 9 
 
 // GAC hardware acceleration commands
@@ -86,6 +86,7 @@ int writeCommandBuf(uint8_t* commandByteBuf, uint8_t size);
 	void foreground(uint16_t color);
 	void fillrect(uint8_t x1,uint8_t y1,uint8_t x2,uint8_t y2,uint16_t colorline,uint16_t colorfill);
 	void Fill_Screen(uint16_t color);
+	uint16_t toRGB(uint16_t R,uint16_t G,uint16_t B);
 	void line(uint8_t x1,uint8_t y1,uint8_t x2,uint8_t y2,uint16_t color);
     uint16_t Char_Color;    // text color
     uint16_t BGround_Color; // background color
