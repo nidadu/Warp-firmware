@@ -1366,21 +1366,98 @@ main(void)
 	 */
 #endif
 
-	//devSSD1331init();
+	devSSD1331init();
 
 	//foreground(toRGB(0,255,0));
-	//writeText(36, 10, "22~C", 5);
+	//writeText(36, 10, "{|}", 5);
 	//foreground(toRGB(255,0,0));
 	//writeText(39, 30, "40%", 4);
 	//foreground(toRGB(255,255,0));
-	//writeText(39, 50, "40%", 4);
+	//writeText(42, 22, "40", 3);
+	//writeText(39, 50, "654", 4);
 
 	enableI2Cpins(menuI2cPullupValue);
 
 	while(1)
 	{
-		read_moisture();
-		read_SI7021();
+
+		// TEMPERATURE
+		// only does positive and <100C temperatures
+
+		uint16_t *reading = read_temperature();
+		char temp [4];
+		sprintf(temp, "%d.%d", reading[0], reading[1]);
+        SEGGER_RTT_printf(0, temp);
+		OSA_TimeDelay(gWarpMenuPrintDelayMilliseconds);
+		if ((reading[0] > 14) || (reading[0] < 30))
+		{
+			foreground(toRGB(0,255,0)); // green
+			writeText(42, 1, &temp, 4);
+			writeText(66, 1, "~C", 2);
+		}
+		else // high and low temperatures
+		{
+			foreground(toRGB(255,69,0)); // orange
+			writeText(42, 1, &temp, 4);
+			writeText(66, 1, "~C", 2);
+		}
+		
+		//OSA_TimeDelay(10000);
+
+		// HUMIDITY 
+
+		char rh [2];
+		uint16_t rh_n = read_humidity();
+		sprintf(rh, "%d", rh_n);
+		SEGGER_RTT_WriteString(0, &rh);
+		OSA_TimeDelay(gWarpMenuPrintDelayMilliseconds);
+
+		if ((rh_n > 60) || (rh_n < 100))
+		{
+			foreground(toRGB(255,69,0)); // orange
+			writeText(54, 22, &rh, 3);
+			writeText(68, 22, "%", 1);
+		}
+		else if ((rh_n < 60) || (rh_n > 40))
+		{
+			foreground(toRGB(0,255,0)); // green
+			writeText(54, 22, &rh, 3);
+			writeText(68, 22, "%", 1);
+		}
+		else if ((rh_n <40) || (rh_n > 0))
+		{
+			foreground(toRGB(255,69,0)); // orange
+			writeText(54, 22, rh, 3);
+			writeText(68, 22, "%", 1);
+		}
+		else // out of bands
+		{
+			foreground(toRGB(255,255,255)); 
+			writeText(54, 22, "--", 3);
+			writeText(68, 22, "%", 1);
+		}
+
+		//OSA_TimeDelay(10000);
+
+		uint16_t moist = read_moisture();
+		chr_size = WH;
+		if (moist > 600) 
+		{
+			foreground(toRGB(255,69,0)); // orange
+			writeText(54, 43, "}}", 3);
+		}
+		else if ((moist < 600) || (moist > 300))
+		{
+			foreground(toRGB(0,255,0)); // green
+			writeText(54, 43, "||", 3);
+		}
+		else if (moist <300)
+		{
+			foreground(toRGB(255,69,0)); // orange
+			writeText(54, 43, "{{", 3);
+		}
+		chr_size = HIGH;
+
 		OSA_TimeDelay(3000);
 	}
 

@@ -8,7 +8,7 @@
 #include "devSoilSensor.h"
 
 
-void read_moisture(void)
+uint16_t read_moisture(void)
 {
     uint8_t SOIL_data[2];
 
@@ -52,18 +52,14 @@ void read_moisture(void)
     uint16_t soil_LSB = SOIL_data[1];
     uint16_t soil_reading = ((soil_MSB & 0xFF) << 8) | (soil_LSB);
 
-    if (status_SOIL_r != kStatus_I2C_Success)
-    {
-        SEGGER_RTT_WriteString(0, " SOIL sensor communication failed\n");
-        OSA_TimeDelay(gWarpMenuPrintDelayMilliseconds);
-    }
-    else 
+    if (status_SOIL_r == kStatus_I2C_Success)
     {
         SEGGER_RTT_WriteString(0, " SOIL sensor read succeeded\n");
         SEGGER_RTT_printf(0, " read: 0x%02x 0x%02x,", SOIL_data[0], SOIL_data[1]);
-        SEGGER_RTT_printf(0, " %d\n", soil_reading);
+        SEGGER_RTT_printf(0, " %d\n\n", soil_reading);
         OSA_TimeDelay(gWarpMenuPrintDelayMilliseconds);
-        
+        return soil_reading;
     }
+    else return 0;
 
 }

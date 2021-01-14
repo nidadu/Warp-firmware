@@ -44,6 +44,7 @@ typedef enum
 
 int	devSSD1331init(void);
 void clear(void);
+void clear_text(uint8_t x0, uint8_t y0, uint8_t len);
 void writeChar (int a);
 void writeText(uint8_t x_coord, uint8_t y_coord, char *s, int len);
 int writeCommandBuf(uint8_t* commandByteBuf, uint8_t size);

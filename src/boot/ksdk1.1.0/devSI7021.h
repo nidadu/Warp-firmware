@@ -39,6 +39,9 @@
 #define WARP_BUILD_ENABLE_DEVSI7021
 #endif
 
+uint8_t cmd_read_humidity[2] = {0xE5, 0x00};
+uint8_t cmd_read_temperature[2] = {0xE3, 0x00};
+
 void		initSI7021(const uint8_t i2cAddress, WarpI2CDeviceState volatile *  deviceStatePointer);
 WarpStatus	readSensorRegisterSI7021(uint8_t deviceRegister, int numberOfBytes);
 WarpStatus	readSensorSignalSI7021(WarpTypeMask signal,

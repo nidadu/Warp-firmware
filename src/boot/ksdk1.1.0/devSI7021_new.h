@@ -3,4 +3,5 @@ extern volatile uint32_t		gWarpI2cTimeoutMilliseconds;
 extern volatile uint32_t		gWarpSupplySettlingDelayMilliseconds;
 extern volatile uint32_t		gWarpMenuPrintDelayMilliseconds;
 
-void	read_SI7021(void);
+uint16_t read_humidity (void);
+uint16_t * read_temperature (void);

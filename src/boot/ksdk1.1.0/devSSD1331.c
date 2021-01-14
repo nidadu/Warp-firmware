@@ -170,7 +170,7 @@ devSSD1331init(void)
     clear();
 
     // Font size
-    chr_size = NORMAL;
+    chr_size = HIGH;
 	/*
 	 *	Any post-initialization drawing commands go here.
 	 */
@@ -179,13 +179,14 @@ devSSD1331init(void)
     // Write initial display template
     background(0);
 	foreground(toRGB(255,255,255));
-	writeText(0, 0, "TEMPERATURE", 12);
-	writeText(36, 10, "----", 5);
-	writeText(0, 20, "HUMIDITY", 9);
-	writeText(39, 30, "---", 4);
-	writeText(0, 40, "MOISTURE", 9);
-	writeText(39, 50, "---", 4);
-
+	//writeText(0, 1, "TEMP", 5);
+	//writeText(42, 1, "-----~C", 8);
+	//writeText(0, 22, "RH", 3);
+	//writeText(54, 22, "--%", 3);
+	//writeText(0, 43, "MOIST", 6);
+	//writeText(54, 43, "--", 3); 
+    //OSA_TimeDelay(10000);
+ 
 	return 0;
 }
 
@@ -198,10 +199,9 @@ void writeChar (int a)
 
 void writeText(uint8_t x_coord, uint8_t y_coord, char *s, int len)
 {
+    clear_text(x_coord, y_coord, len);
     for (int i=0; i<len; i++)
     {
-        SEGGER_RTT_WriteString(0, *s);
-	    OSA_TimeDelay(10);
         PutChar(x_coord, y_coord, *s);
         s++;
         x_coord += X_width;
@@ -301,9 +301,9 @@ static const char font6x8[0x60][6] = {
     { 0x00,0x6C,0x10,0x10,0x6C,0x00 } , /* x  */
     { 0x00,0x4C,0x50,0x30,0x1C,0x00 } , /* y  */
     { 0x00,0x44,0x64,0x54,0x4C,0x00 } , /* z  */
-    { 0x00,0x08,0x36,0x41,0x41,0x00 } , /* {  */
-    { 0x00,0x00,0x7F,0x00,0x00,0x00 } , /* |  */
-    { 0x41,0x41,0x36,0x08,0x00,0x00 } , /* }  */
+    { 0x02,0x04,0x48,0x70,0x70,0x78 } , /* arrow down as {  */
+    { 0x08,0x08,0x08,0x3E,0x1C,0x08 } , /* arrow forward as |  */
+    { 0x20,0x10,0x09,0x07,0x07,0x0F } , /* arrow up as }  */
     { 0x00,0x02,0x05,0x02,0x00,0x00 } , /* deg masked as ~ */
     { 0x00,0x00,0x00,0x00,0x00,0x00 }    /*null*/
 };
@@ -385,8 +385,6 @@ void FontSizeConvert(int *lpx,int *lpy)
 
 void pixel(uint8_t x,uint8_t y,uint16_t Color)
 {
-	SEGGER_RTT_WriteString(0, "pixel function\n");
-	OSA_TimeDelay(10);
     unsigned char cmd[7]= {Set_Column_Address,0x00,0x00,Set_Row_Address,0x00,0x00};
     if ((x>width)||(y>height)) return ;
     cmd[1] = (unsigned char)x;
@@ -395,13 +393,8 @@ void pixel(uint8_t x,uint8_t y,uint16_t Color)
     cmd[5] = (unsigned char)y;
     
     //RegWriteM
-    SEGGER_RTT_WriteString(0, "regwriteM loop\n");
-	OSA_TimeDelay(10);
     writeCommandBuf(&cmd,6); 
     
-    SEGGER_RTT_WriteString(0, "regwriteM loop done\n");
-	OSA_TimeDelay(10);
-
     //DataWrite_to
 	uint8_t colorBuf [2] = {(unsigned char)((Color >> 8)), (unsigned char)(Color)};
     writeCommandBuf(&colorBuf, 2);
@@ -443,6 +436,17 @@ void clear(void)
 	writeCommand(0x00);
 	writeCommand(0x5F);
 	writeCommand(0x3F);
+}
+
+void clear_text(uint8_t x0, uint8_t y0, uint8_t len)
+{
+    // clears specified text, works only for text in the same row
+
+	writeCommand(kSSD1331CommandCLEAR);
+	writeCommand(x0);
+	writeCommand(y0);
+	writeCommand(x0+X_width*len);
+	writeCommand(y0+Y_height*2);
 }
 
 void fillrect(uint8_t x1,uint8_t y1,uint8_t x2,uint8_t y2,uint16_t colorline,uint16_t colorfill)
