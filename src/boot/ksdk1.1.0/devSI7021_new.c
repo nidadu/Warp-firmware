@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <math.h>
 
 #include "fsl_i2c_master_driver.h"
 #include "fsl_clock_manager.h"
@@ -96,7 +97,7 @@ uint16_t read_temperature (void)
     uint16_t temp_MSB = temperature_data[0];
     uint16_t temp_LSB = temperature_data[1];
     uint16_t temperature_reading = ((temp_MSB & 0xFF) << 8) | (temp_LSB);
-    temperature_reading = ((175.72 * temperature_reading / 65536 - 46.85))*10;
+    temperature_reading = (1757 * temperature_reading / 65536 - 469);
 
 	if (	(status1 == kStatus_I2C_Success) ||	(status2 == kStatus_I2C_Success) )
 	{

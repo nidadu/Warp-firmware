@@ -1373,18 +1373,12 @@ main(void)
 	// Use moving average method to evaluate increasing/decreasing trend in measurements
 	// For the first MA, take only initial value
 	// Hold 5 time samples (each )
-	uint16_t ma_temp = read_temperature();
-	uint16_t ar_temp [5]= {ma_temp, ma_temp, ma_temp, ma_temp, ma_temp};
-	uint16_t ma_rh = read_humidity();
-	uint16_t ar_rh [5]= {ma_rh, ma_rh, ma_rh, ma_rh, ma_rh};
-	ma_rh *=100;
+
 	uint16_t ma_moist = read_moisture();
 	uint16_t ar_moist [5]= {ma_moist, ma_moist, ma_moist, ma_moist, ma_moist};
-	
 
 	while(1)
 	{
-
 		/* TEMPERATURE */
 		// only does positive and <100C temperatures
 
@@ -1393,7 +1387,7 @@ main(void)
 		sprintf(ch_temp, "%d.%d", temp_reading/10, temp_reading%10);
         SEGGER_RTT_printf(0, ch_temp);
 		OSA_TimeDelay(gWarpMenuPrintDelayMilliseconds);
-		if ((temp_reading > 140) || (temp_reading < 300))
+		if ((temp_reading > 140) && (temp_reading < 300))
 		{
 			foreground(toRGB(0,255,0)); // green
 			writeText(42, 1, &ch_temp, 8);
@@ -1406,15 +1400,6 @@ main(void)
 			writeText(66, 1, "~C", 2);
 		}
 
-		ma_temp = ma_temp + (-ar_temp[4] + temp_reading)/5;
-		for(int i=4; i>0; i--) ar_temp[i]=ar_temp[i-1];
-		ar_temp[0] = temp_reading;
-
-		if 		(temp_reading > (ma_temp + 1)) 	writeText(81, 1, "}", 1);	// rh is increasing
-		else if (temp_reading < (ma_temp - 1)) 	writeText(81, 1, "{", 1);	// rh is decreasing
-		else 										writeText(81, 1, "|", 1);	// not much change (+/- 1 degC)
-
-
 		/* HUMIDITY */
 
 		char rh [2];
@@ -1423,58 +1408,48 @@ main(void)
 		SEGGER_RTT_WriteString(0, &rh);
 		OSA_TimeDelay(gWarpMenuPrintDelayMilliseconds);
 
-		if ((rh_n > 60) || (rh_n < 100))
+		if (((rh_n > 60) && (rh_n < 100)) || ((rh_n <40) && (rh_n > 0)))
 		{
 			foreground(toRGB(255,69,0)); // orange
 			writeText(54, 22, &rh, 5);
 			writeText(68, 22, "%", 1);
+			SEGGER_RTT_WriteString(0, "upper");
 		}
-		else if ((rh_n < 60) || (rh_n > 40))
+		else if ((rh_n < 60) && (rh_n > 40))
 		{
 			foreground(toRGB(0,255,0)); // green
 			writeText(54, 22, &rh, 5);
 			writeText(68, 22, "%", 1);
-		}
-		else if ((rh_n <40) || (rh_n > 0))
-		{
-			foreground(toRGB(255,69,0)); // orange
-			writeText(54, 22, rh, 5);
-			writeText(68, 22, "%", 1);
+			SEGGER_RTT_WriteString(0, "middle");
 		}
 		else // out of bands
 		{
 			foreground(toRGB(255,255,255)); 
 			writeText(54, 22, "--", 5);
 			writeText(68, 22, "%", 1);
+			SEGGER_RTT_WriteString(0, "out");
 		}
 
-		ma_rh = ma_rh + (-ar_rh[4] + rh_n)*100/5;
-		for(int i=4; i>0; i--) ar_rh[i]=ar_rh[i-1];
-		ar_rh[0] = rh_n;
-
-		if 		(rh_n*100 > (ma_rh + 500)) 	writeText(74, 22, "}", 1);	// rh is increasing
-		else if (rh_n*100 < (ma_rh - 500)) 	writeText(74, 22, "{", 1);	// rh is decreasing
-		else 								writeText(74, 22, "|", 1);	// not much change (+/- 5%rh)
-
-		
 		/* SOIL MOISTURE */
 
 		uint16_t moist = read_moisture();
-		chr_size = WH;
 
 		// Color text according to healthy moisture range
-		if ((moist < 600) || (moist > 300))	foreground(toRGB(0,255,0)); // green
-		else 								foreground(toRGB(255,69,0)); // orange
+		if ((moist < 600) && (moist > 300))	
+			foreground(toRGB(0,255,0)); // green
+		else foreground(toRGB(255,69,0)); // orange
 
 		ma_moist = ma_moist + (-ar_moist[4] + moist)/5;
 		for(int i=4; i>0; i--) ar_moist[i]=ar_moist[i-1];
 		ar_moist[0] = moist;
 
-		if 		(moist > (ma_moist + 50)) 	writeText(54, 48, "}}", 2);	// rh is increasing
-		else if (moist < (ma_moist - 50)) 	writeText(54, 48, "{{", 2);	// rh is decreasing
-		else 								writeText(54, 48, "||", 2);	// not much change (+/- 5%rh)
+		if 	(moist > (ma_moist + 50)) 	
+			writeText(51, 42, "}", 2);	// rh is increasing
+		else if (moist < (ma_moist - 50)) 	
+			writeText(51, 42, "{", 2);	// rh is decreasing
+		else writeText(51, 42, "|", 2);	// not much change (+/- 5%rh)
 
-		chr_size = HIGH;
+		OSA_TimeDelay(20000);
 
 	}
 

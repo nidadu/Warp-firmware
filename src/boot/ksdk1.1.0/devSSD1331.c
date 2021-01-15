@@ -1,3 +1,5 @@
+// some parts were adapted from the mbed display driver by Paul Staron https://os.mbed.com/users/star297/code/ssd1331/
+
 #include <stdint.h>
 
 #include "fsl_spi_master_driver.h"
@@ -179,13 +181,12 @@ devSSD1331init(void)
     // Write initial display template
     background(0);
 	foreground(toRGB(255,255,255));
-	//writeText(0, 1, "TEMP", 5);
-	//writeText(42, 1, "-----~C", 8);
-	//writeText(0, 22, "RH", 3);
-	//writeText(54, 22, "--%", 3);
-	//writeText(0, 43, "MOIST", 6);
-	//writeText(54, 43, "--", 3); 
-    //OSA_TimeDelay(10000);
+	writeText(0, 1, "TEMP", 5);
+	writeText(42, 1, "-----~C", 8);
+	writeText(0, 22, "RH", 3);
+	writeText(54, 22, "--%", 3);
+	writeText(0, 43, "MOIST", 6);
+	writeText(51, 42, "-", 2); 
  
 	return 0;
 }
@@ -223,7 +224,7 @@ static const char font6x8[0x60][6] = {
     { 0x22,0x14,0x08,0x14,0x22,0x00 } , /* *  */
     { 0x08,0x08,0x3E,0x08,0x08,0x00 } , /* +  */
     { 0x50,0x30,0x00,0x00,0x00,0x00 } , /* ,  */
-    { 0x08,0x08,0x08,0x08,0x08,0x00 } , /* -  */
+    { 0x08,0x08,0x08,0x08,0x08,0x00 } , /* -  */ // space
     { 0x60,0x60,0x00,0x00,0x00,0x00 } , /* .  */
     { 0x20,0x10,0x08,0x04,0x02,0x00 } , /* /  */
     { 0x3E,0x51,0x49,0x45,0x3E,0x00 } , /* 0  */
@@ -302,7 +303,7 @@ static const char font6x8[0x60][6] = {
     { 0x00,0x4C,0x50,0x30,0x1C,0x00 } , /* y  */
     { 0x00,0x44,0x64,0x54,0x4C,0x00 } , /* z  */
     { 0x02,0x04,0x48,0x70,0x70,0x78 } , /* arrow down as {  */
-    { 0x08,0x08,0x08,0x3E,0x1C,0x08 } , /* arrow forward as |  */
+    { 0x00,0x08,0x08,0x3E,0x1C,0x08 } , /* arrow forward as |  */
     { 0x20,0x10,0x09,0x07,0x07,0x0F } , /* arrow up as }  */
     { 0x00,0x02,0x05,0x02,0x00,0x00 } , /* deg masked as ~ */
     { 0x00,0x00,0x00,0x00,0x00,0x00 }    /*null*/
@@ -310,6 +311,10 @@ static const char font6x8[0x60][6] = {
 
 void PutChar (uint8_t column,uint8_t row, int value)
 {
+        if ((value == (int)'{') || (value == (int)'}') || (value == (int)'|')) 
+            chr_size = WH;
+        else chr_size = HIGH;
+
         char_x  = column;
         char_y = row;
         // internal font
@@ -445,8 +450,19 @@ void clear_text(uint8_t x0, uint8_t y0, uint8_t len)
 	writeCommand(kSSD1331CommandCLEAR);
 	writeCommand(x0);
 	writeCommand(y0);
-	writeCommand(x0+X_width*len);
-	writeCommand(y0+Y_height*2);
+
+    if(chr_size == WH)
+    {
+        writeCommand(x0+X_width*len*2);
+        writeCommand(y0+Y_height*2);
+    }
+	else // else assume chr_size HIGH
+    {
+        writeCommand(x0+X_width*len);  
+        writeCommand(y0+Y_height*2);
+    }
+
+	
 }
 
 void fillrect(uint8_t x1,uint8_t y1,uint8_t x2,uint8_t y2,uint16_t colorline,uint16_t colorfill)
@@ -495,5 +511,4 @@ void line(uint8_t x1,uint8_t y1,uint8_t x2,uint8_t y2,uint16_t color)
     cmd[6] = (unsigned char)((color>>5)&0x3F);          // Green
     cmd[7] = (unsigned char)((color&0x1F)<<1);          // Red
     writeCommandBuf(cmd, 8);
-    OSA_TimeDelay(500);
 }

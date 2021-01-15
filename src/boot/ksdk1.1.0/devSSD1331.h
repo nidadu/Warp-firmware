@@ -80,25 +80,25 @@ int writeCommandBuf(uint8_t* commandByteBuf, uint8_t size);
 #define SCROLL_STOP             0x2E    // Scroll Stop
 #define SCROLL_START            0x2F    // Scroll Start
  
-    void pixel(uint8_t x,uint8_t y,uint16_t Color);
-    void PutChar(uint8_t x,uint8_t y,int a);
-    void FontSizeConvert(int *lpx,int *lpy);
-	void background(uint16_t color);
-	void foreground(uint16_t color);
-	void fillrect(uint8_t x1,uint8_t y1,uint8_t x2,uint8_t y2,uint16_t colorline,uint16_t colorfill);
-	void Fill_Screen(uint16_t color);
-	uint16_t toRGB(uint16_t R,uint16_t G,uint16_t B);
-	void line(uint8_t x1,uint8_t y1,uint8_t x2,uint8_t y2,uint16_t color);
-    uint16_t Char_Color;    // text color
-    uint16_t BGround_Color; // background color
+void pixel(uint8_t x,uint8_t y,uint16_t Color);
+void PutChar(uint8_t x,uint8_t y,int a);
+void FontSizeConvert(int *lpx,int *lpy);
+void background(uint16_t color);
+void foreground(uint16_t color);
+void fillrect(uint8_t x1,uint8_t y1,uint8_t x2,uint8_t y2,uint16_t colorline,uint16_t colorfill);
+void Fill_Screen(uint16_t color);
+uint16_t toRGB(uint16_t R,uint16_t G,uint16_t B);
+void line(uint8_t x1,uint8_t y1,uint8_t x2,uint8_t y2,uint16_t color);
+uint16_t Char_Color;    // text color
+uint16_t BGround_Color; // background color
 
-    // window location
-    uint8_t _x1;
-    uint8_t _x2;
-    uint8_t _y1;
-    uint8_t _y2;
-    uint8_t char_x;
-    uint8_t char_y;
-    uint8_t chr_size;
-    uint8_t cwidth;       // character's width
-    uint8_t cvert;        // character's height
+// window location
+uint8_t _x1;
+uint8_t _x2;
+uint8_t _y1;
+uint8_t _y2;
+uint8_t char_x;
+uint8_t char_y;
+uint8_t chr_size;
+uint8_t cwidth;       // character's width
+uint8_t cvert;        // character's height
