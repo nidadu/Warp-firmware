@@ -4,4 +4,4 @@ extern volatile uint32_t		gWarpSupplySettlingDelayMilliseconds;
 extern volatile uint32_t		gWarpMenuPrintDelayMilliseconds;
 
 uint16_t read_humidity (void);
-uint16_t * read_temperature (void);
+uint16_t read_temperature (void);
