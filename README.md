@@ -1,4 +1,6 @@
-This contains the embedded system code for Coursework 5 on the plant health monitor. 
+Author: Nida Duobaite, nd435, Peterhouse college.
+
+This contains the embedded system code for Coursework 5 on the plant health monitor providing live data on temperature, relative humidity and soil moisture with its forecast.
 
 In comparison with the original Warp firmware, this also has 2 sensor drivers: 
   Warp-firmware/src/boot/ksdk1.1.0/devSI7021_new.c for a Si7021 temperature and humidity sensor and 
